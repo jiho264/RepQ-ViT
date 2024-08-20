@@ -14,28 +14,33 @@ class QuantConv2d(nn.Conv2d):
     """
     Class to quantize weights of given convolutional layer
     """
-    def __init__(self,   
-                in_channels,
-                out_channels,
-                kernel_size,
-                stride=1,
-                padding=0,
-                dilation=1,
-                groups=1,
-                bias=True,
-                input_quant_params={},
-                weight_quant_params={}):
-        super(QuantConv2d, self).__init__(in_channels=in_channels,
-                                          out_channels=out_channels,
-                                          kernel_size=kernel_size,
-                                          stride=stride,
-                                          padding=padding,
-                                          dilation=dilation,
-                                          groups=groups,
-                                          bias=bias)
+
+    def __init__(
+        self,
+        in_channels,
+        out_channels,
+        kernel_size,
+        stride=1,
+        padding=0,
+        dilation=1,
+        groups=1,
+        bias=True,
+        input_quant_params={},
+        weight_quant_params={},
+    ):
+        super(QuantConv2d, self).__init__(
+            in_channels=in_channels,
+            out_channels=out_channels,
+            kernel_size=kernel_size,
+            stride=stride,
+            padding=padding,
+            dilation=dilation,
+            groups=groups,
+            bias=bias,
+        )
 
         input_quant_params_conv = deepcopy(input_quant_params)
-        input_quant_params_conv['n_bits'] = 8
+        input_quant_params_conv["n_bits"] = 8
         self.input_quantizer = UniformQuantizer(**input_quant_params_conv)
         self.weight_quantizer = UniformQuantizer(**weight_quant_params)
 
@@ -44,9 +49,15 @@ class QuantConv2d(nn.Conv2d):
 
     def __repr__(self):
         s = super(QuantConv2d, self).__repr__()
-        s = "(" + s + "input_quant={}, weight_quant={})".format(self.use_input_quant, self.use_weight_quant)
+        s = (
+            "("
+            + s
+            + "input_quant={}, weight_quant={})".format(
+                self.use_input_quant, self.use_weight_quant
+            )
+        )
         return s
-    
+
     def set_quant_state(self, input_quant=False, weight_quant=False):
         self.use_input_quant = input_quant
         self.use_weight_quant = weight_quant
@@ -64,13 +75,7 @@ class QuantConv2d(nn.Conv2d):
             w = self.weight
 
         out = F.conv2d(
-            x, 
-            w, 
-            self.bias, 
-            self.stride, 
-            self.padding, 
-            self.dilation, 
-            self.groups
+            x, w, self.bias, self.stride, self.padding, self.dilation, self.groups
         )
 
         return out
@@ -80,11 +85,10 @@ class QuantLinear(nn.Linear):
     """
     Class to quantize weights of given Linear layer
     """
-    def __init__(self,
-                 in_features,
-                 out_features,
-                 input_quant_params={},
-                 weight_quant_params={}):
+
+    def __init__(
+        self, in_features, out_features, input_quant_params={}, weight_quant_params={}
+    ):
         super(QuantLinear, self).__init__(in_features, out_features)
 
         self.input_quantizer = UniformQuantizer(**input_quant_params)
@@ -95,9 +99,15 @@ class QuantLinear(nn.Linear):
 
     def __repr__(self):
         s = super(QuantLinear, self).__repr__()
-        s = "(" + s + "input_quant={}, weight_quant={})".format(self.use_input_quant, self.use_weight_quant)
+        s = (
+            "("
+            + s
+            + "input_quant={}, weight_quant={})".format(
+                self.use_input_quant, self.use_weight_quant
+            )
+        )
         return s
-    
+
     def set_quant_state(self, input_quant=False, weight_quant=False):
         self.use_input_quant = input_quant
         self.use_weight_quant = weight_quant
@@ -118,19 +128,19 @@ class QuantLinear(nn.Linear):
         out = F.linear(x, weight=w, bias=self.bias)
 
         return out
-        
+
 
 class QuantMatMul(nn.Module):
     """
     Class to quantize weights of given Linear layer
     """
-    def __init__(self,
-                 input_quant_params={}):
+
+    def __init__(self, input_quant_params={}):
         super(QuantMatMul, self).__init__()
 
         input_quant_params_matmul = deepcopy(input_quant_params)
-        if 'log_quant' in input_quant_params_matmul:
-            input_quant_params_matmul.pop('log_quant')
+        if "log_quant" in input_quant_params_matmul:
+            input_quant_params_matmul.pop("log_quant")
             self.quantizer_A = LogSqrt2Quantizer(**input_quant_params_matmul)
         else:
             self.quantizer_A = UniformQuantizer(**input_quant_params_matmul)
@@ -142,7 +152,7 @@ class QuantMatMul(nn.Module):
         s = super(QuantMatMul, self).__repr__()
         s = "(" + s + "input_quant={})".format(self.use_input_quant)
         return s
-    
+
     def set_quant_state(self, input_quant=False, weight_quant=False):
         self.use_input_quant = input_quant
 
@@ -150,6 +160,6 @@ class QuantMatMul(nn.Module):
         if self.use_input_quant:
             A = self.quantizer_A(A)
             B = self.quantizer_B(B)
-        
+
         out = A @ B
         return out

@@ -9,16 +9,16 @@ from copy import deepcopy
 def quant_model(model, input_quant_params={}, weight_quant_params={}):
     # post-softmax
     input_quant_params_matmul2 = deepcopy(input_quant_params)
-    input_quant_params_matmul2['log_quant'] = True
+    input_quant_params_matmul2["log_quant"] = True
 
     # SimQuant
     input_quant_params_channel = deepcopy(input_quant_params)
-    input_quant_params_channel['channel_wise'] = True
+    input_quant_params_channel["channel_wise"] = True
 
-    module_dict={}
+    module_dict = {}
     for name, m in model.named_modules():
         module_dict[name] = m
-        idx = name.rfind('.')
+        idx = name.rfind(".")
         if idx == -1:
             idx = 0
         father_name = name[:idx]
@@ -26,7 +26,7 @@ def quant_model(model, input_quant_params={}, weight_quant_params={}):
             father_module = module_dict[father_name]
         else:
             raise RuntimeError(f"father module {father_name} not found")
-        
+
         if isinstance(m, nn.Conv2d):
             # Embedding Layer
             idx = idx + 1 if idx != 0 else idx
@@ -40,7 +40,7 @@ def quant_model(model, input_quant_params={}, weight_quant_params={}):
                 m.groups,
                 m.bias is not None,
                 input_quant_params,
-                weight_quant_params
+                weight_quant_params,
             )
             new_m.weight.data = m.weight.data
             new_m.bias = m.bias
@@ -48,17 +48,27 @@ def quant_model(model, input_quant_params={}, weight_quant_params={}):
         elif isinstance(m, nn.Linear):
             # Linear Layer
             idx = idx + 1 if idx != 0 else idx
-            if 'qkv' in name or 'fc1' in name or 'reduction' in name:
-                new_m = QuantLinear(m.in_features, m.out_features, input_quant_params_channel, weight_quant_params)
+            if "qkv" in name or "fc1" in name or "reduction" in name:
+                new_m = QuantLinear(
+                    m.in_features,
+                    m.out_features,
+                    input_quant_params_channel,
+                    weight_quant_params,
+                )
             else:
-                new_m = QuantLinear(m.in_features, m.out_features, input_quant_params, weight_quant_params)
+                new_m = QuantLinear(
+                    m.in_features,
+                    m.out_features,
+                    input_quant_params,
+                    weight_quant_params,
+                )
             new_m.weight.data = m.weight.data
             new_m.bias = m.bias
             setattr(father_module, name[idx:], new_m)
         elif isinstance(m, MatMul):
             # Matmul Layer
             idx = idx + 1 if idx != 0 else idx
-            if 'matmul2' in name:
+            if "matmul2" in name:
                 new_m = QuantMatMul(input_quant_params_matmul2)
             else:
                 new_m = QuantMatMul(input_quant_params)

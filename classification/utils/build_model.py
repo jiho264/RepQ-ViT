@@ -10,8 +10,12 @@ from timm.models.swin_transformer import WindowAttention
 
 def attention_forward(self, x):
     B, N, C = x.shape
-    qkv = self.qkv(x).reshape(B, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
-    q, k, v = qkv.unbind(0)   # make torchscript happy (cannot use tensor as tuple)
+    qkv = (
+        self.qkv(x)
+        .reshape(B, N, 3, self.num_heads, C // self.num_heads)
+        .permute(2, 0, 3, 1, 4)
+    )
+    q, k, v = qkv.unbind(0)  # make torchscript happy (cannot use tensor as tuple)
 
     # attn = (q @ k.transpose(-2, -1)) * self.scale
     attn = self.matmul1(q, k.transpose(-2, -1)) * self.scale
@@ -27,23 +31,36 @@ def attention_forward(self, x):
     return x
 
 
-def window_attention_forward(self, x, mask = None):
+def window_attention_forward(self, x, mask=None):
     B_, N, C = x.shape
-    qkv = self.qkv(x).reshape(B_, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
+    qkv = (
+        self.qkv(x)
+        .reshape(B_, N, 3, self.num_heads, C // self.num_heads)
+        .permute(2, 0, 3, 1, 4)
+    )
     q, k, v = qkv.unbind(0)  # make torchscript happy (cannot use tensor as tuple)
 
     q = q * self.scale
     # attn = (q @ k.transpose(-2, -1))
-    attn = self.matmul1(q, k.transpose(-2,-1))
+    attn = self.matmul1(q, k.transpose(-2, -1))
 
-    relative_position_bias = self.relative_position_bias_table[self.relative_position_index.view(-1)].view(
-        self.window_size[0] * self.window_size[1], self.window_size[0] * self.window_size[1], -1)  # Wh*Ww,Wh*Ww,nH
-    relative_position_bias = relative_position_bias.permute(2, 0, 1).contiguous()  # nH, Wh*Ww, Wh*Ww
+    relative_position_bias = self.relative_position_bias_table[
+        self.relative_position_index.view(-1)
+    ].view(
+        self.window_size[0] * self.window_size[1],
+        self.window_size[0] * self.window_size[1],
+        -1,
+    )  # Wh*Ww,Wh*Ww,nH
+    relative_position_bias = relative_position_bias.permute(
+        2, 0, 1
+    ).contiguous()  # nH, Wh*Ww, Wh*Ww
     attn = attn + relative_position_bias.unsqueeze(0)
 
     if mask is not None:
         nW = mask.shape[0]
-        attn = attn.view(B_ // nW, nW, self.num_heads, N, N) + mask.unsqueeze(1).unsqueeze(0)
+        attn = attn.view(B_ // nW, nW, self.num_heads, N, N) + mask.unsqueeze(
+            1
+        ).unsqueeze(0)
         attn = attn.view(-1, self.num_heads, N, N)
         attn = self.softmax(attn)
     else:
@@ -78,7 +95,7 @@ def build_model(name):
     """
     model = timm.create_model(name, pretrained=True)
 
-    #for module in model.modules():
+    # for module in model.modules():
     for name, module in model.named_modules():
         if isinstance(module, Attention):
             setattr(module, "matmul1", MatMul())
