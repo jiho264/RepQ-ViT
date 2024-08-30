@@ -1,0 +1,61 @@
+Namespace(model='deit_tiny', dataset='data/ImageNet', calib_batchsize=32, val_batchsize=200, num_workers=8, device='cuda', print_freq=100, seed=0, w_bits=4, a_bits=4)
+Building dataloader ...
+Building model ...
+
+
+VisionTransformer(
+  >> patch_embed
+  (patch_embed): PatchEmbed(
+    >> patch_embed.proj
+    (proj): Conv2d(3, 192, kernel_size=(16, 16), stride=(16, 16))
+    >> patch_embed.norm
+    (norm): Identity()
+  )
+  >> pos_embed
+  (pos_drop): Dropout(p=0.0, inplace=False)
+  >> blocks
+  (blocks): Sequential(
+    >> blocks.0
+    (0): Block(
+      >> blocks.0.norm1
+      (norm1): LayerNorm((192,), eps=1e-06, elementwise_affine=True)
+      >> blocks.0.attn
+      (attn): Attention(
+        >> blocks.0.attn.qkv
+        (qkv): Linear(in_features=192, out_features=576, bias=True)
+        >> blocks.0.attn.attn_drop
+        (attn_drop): Dropout(p=0.0, inplace=False)
+        >> blocks.0.attn.proj
+        (proj): Linear(in_features=192, out_features=192, bias=True)
+        >> blocks.0.attn.proj_drop
+        (proj_drop): Dropout(p=0.0, inplace=False)
+        >> blocks.0.attn.matmul1
+        (matmul1): MatMul()
+        >> blocks.0.attn.matmul2
+        (matmul2): MatMul()
+      )
+      >> blocks.0.drop_path
+      (drop_path): Identity()
+      >> blocks.0.norm2
+      (norm2): LayerNorm((192,), eps=1e-06, elementwise_affine=True)
+      >> blocks.0.mlp
+      (mlp): Mlp(
+        >> blocks.0.mlp.fc1
+        (fc1): Linear(in_features=192, out_features=768, bias=True)
+        >> blocks.0.mlp.act
+        (act): GELU(approximate='none')
+        >> blocks.0.mlp.fc2
+        (fc2): Linear(in_features=768, out_features=192, bias=True)
+        >> blocks.0.mlp.drop
+        (drop): Dropout(p=0.0, inplace=False)
+      )
+    )
+    
+  )
+  >> norm
+  (norm): LayerNorm((192,), eps=1e-06, elementwise_affine=True)
+  >> pre_logits
+  (pre_logits): Identity()
+  >> head
+  (head): Linear(in_features=192, out_features=1000, bias=True)
+)

@@ -15,7 +15,7 @@ def get_args_parser():
     parser = argparse.ArgumentParser(description="RepQ-ViT", add_help=False)
     parser.add_argument(
         "--model",
-        default="deit_small",
+        default="deit_tiny",
         choices=[
             "vit_small",
             "vit_base",
@@ -28,17 +28,20 @@ def get_args_parser():
         help="model",
     )
     parser.add_argument(
-        "--dataset", default="/dataset/imagenet/", help="path to dataset"
+        # "--dataset", default="/dataset/imagenet/", help="path to dataset"
+        "--dataset",
+        default="data/ImageNet",
+        help="path to dataset",
     )
     parser.add_argument(
-        "--calib-batchsize", default=32, type=int, help="batchsize of validation set"
+        "--calib-batchsize", default=4, type=int, help="batchsize of validation set"
     )
     parser.add_argument(
         "--val-batchsize", default=200, type=int, help="batchsize of validation set"
     )
     parser.add_argument(
         "--num-workers",
-        default=16,
+        default=8,
         type=int,
         help="number of data loading workers (default: 16)",
     )
@@ -67,6 +70,7 @@ def seed(seed=0):
 
 def main():
     print(args)
+    print(f"timm version : {timm.__version__}")
     seed(args.seed)
 
     model_zoo = {
@@ -222,6 +226,7 @@ def validate(args, val_loader, model, criterion, device):
                     top5=top5,
                 )
             )
+            # exit()
     val_end_time = time.time()
     print(
         " * Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f} Time {time:.3f}".format(
