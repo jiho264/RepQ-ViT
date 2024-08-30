@@ -226,6 +226,9 @@ class LogSqrt2Quantizer(nn.Module):
         self.k = best_k
         self.b = best_b
         print(x.shape)
+        """
+        this code deit-t 54.652
+        """
         print(f" best score: {best_score}, k: {best_k}, log base: {best_b}")
 
     # """below is org code"""
