@@ -154,8 +154,77 @@ class LogSqrt2Quantizer(nn.Module):
         self.inited = False
         self.channel_wise = channel_wise
 
-    def forward(self, x: torch.Tensor):
+    def int_log_quant_10x(self, x):
+        """when using 4Bit INT Log2 Quantization"""
+        x = x.to(torch.int32)
+        zero_mask = x == 0
+        log2_int = torch.full_like(x, -1, dtype=torch.int32)
 
+        temp_x = x.clone()
+        for i in range(15, -1, -1):
+            shift = 1 << i
+            greater_equal = temp_x >= shift
+            log2_int += greater_equal.to(torch.int32)
+            temp_x = temp_x >> greater_equal.to(torch.int32)
+
+        fractional_add = torch.zeros_like(x, dtype=torch.int32)
+
+        temp_x = x - (1 << log2_int)
+        temp_x = temp_x << 1  # temp_x *= 2
+        fractional_add += (temp_x >= (1 << log2_int)).to(torch.int32) * 5
+        out = -1 * (log2_int * 10 + fractional_add)
+        out[zero_mask] = 99999
+        return out
+
+    def int_log_dequant_10x(self, y):
+        """when using 4Bit INT Log2 Quantization"""
+        zero_mask = y > 0
+        y = -y
+
+        int_part = y // 10
+        frac_part = y % 10 / 5
+
+        int_num = 1 << int_part
+        frac_num = frac_part * (1 << (int_part - 1))
+        out = (int_num + frac_num).floor()
+        out[zero_mask] = 0
+        return out
+
+    def forward(self, x: torch.Tensor):
+        """when using 4Bit INT Log2 Quantization"""
+        x_int = torch.floor(x * 256).to(torch.int32)
+        x_q = self.int_log_quant_10x(x_int)
+        x_dq = self.int_log_dequant_10x(x_q)
+
+        if self.inited is False:
+            best_score = 1e10
+            best_scale = 1
+            for i in torch.arange(x_dq.max(), 256):
+                out = x_dq * 1 / i
+
+                score = lp_loss(x, out, p=2, reduction="all")
+                print(f"scale: {i}, score: {score}")
+
+                if score < best_score:
+                    best_score = score
+                    best_scale = i
+            self.delta = best_scale
+            print(f"self.delta: {self.delta}")
+
+        x = x_dq * 1 / self.delta
+
+        # deit-t * Prec@1 57.664 Prec@5 81.360 Time 107.461
+        # deit-s * Prec@1 69.432 Prec@5 89.056 Time 213.827
+        # deit-b * Prec@1 75.592 Prec@5 92.026 Time 460.074
+        if self.inited is False:
+            print(x_q.unique().numel(), x_q.unique())
+            print(x_dq.unique().numel(), x_dq.unique())
+            print(x.unique().numel(), x.unique())
+            self.inited = True
+
+        return x
+
+        """when using org RepQ-ViT's Log(sqrt2) Code"""
         if self.inited is False:
             self.delta = self.init_quantization_scale(x)
             self.inited = True
@@ -192,6 +261,9 @@ class LogSqrt2Quantizer(nn.Module):
         x_int = torch.round(-1 * (x / delta).log2() * 2)
         mask = x_int >= self.n_levels
         x_quant = torch.clamp(x_int, 0, self.n_levels - 1)
+        # 16 entries
+        # deit-t * Prec@1 57.752 Prec@5 81.396 Time 53.970
+        # deit-s * Prec@1 69.130 Prec@5 88.890 Time 88.819
         odd_mask = (x_quant % 2) * (sqrt(2) - 1) + 1
         x_float_q = 2 ** (-1 * torch.ceil(x_quant / 2)) * odd_mask * delta
         x_float_q[mask] = 0

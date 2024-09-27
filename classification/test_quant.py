@@ -15,7 +15,7 @@ def get_args_parser():
     parser = argparse.ArgumentParser(description="RepQ-ViT", add_help=False)
     parser.add_argument(
         "--model",
-        default="deit_small",
+        default="deit_tiny",
         choices=[
             "vit_small",
             "vit_base",
@@ -27,9 +27,7 @@ def get_args_parser():
         ],
         help="model",
     )
-    parser.add_argument(
-        "--dataset", default="/dataset/imagenet/", help="path to dataset"
-    )
+    parser.add_argument("--dataset", default="data/ImageNet", help="path to dataset")
     parser.add_argument(
         "--calib-batchsize", default=32, type=int, help="batchsize of validation set"
     )
@@ -38,7 +36,7 @@ def get_args_parser():
     )
     parser.add_argument(
         "--num-workers",
-        default=16,
+        default=8,
         type=int,
         help="number of data loading workers (default: 16)",
     )
