@@ -1,0 +1,56 @@
+Namespace(model='vit_base', dataset='data/ImageNet', calib_batchsize=32, val_batchsize=200, num_workers=8, device='cuda', print_freq=100, seed=0, w_bits=4, a_bits=4)
+Building dataloader ...
+Building model ...
+Performing initial quantization ...
+Traceback (most recent call last):
+  File "/home/lee/Desktop/RepQ-ViT/classification/test_quant.py", line 271, in <module>
+    main()
+  File "/home/lee/Desktop/RepQ-ViT/classification/test_quant.py", line 108, in main
+    _ = q_model(calib_data)
+        ^^^^^^^^^^^^^^^^^^^
+  File "/home/lee/miniconda3/envs/py312/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lee/miniconda3/envs/py312/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lee/miniconda3/envs/py312/lib/python3.12/site-packages/timm/models/vision_transformer.py", line 347, in forward
+    x = self.forward_features(x)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lee/miniconda3/envs/py312/lib/python3.12/site-packages/timm/models/vision_transformer.py", line 332, in forward_features
+    x = self.patch_embed(x)
+        ^^^^^^^^^^^^^^^^^^^
+  File "/home/lee/miniconda3/envs/py312/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lee/miniconda3/envs/py312/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lee/miniconda3/envs/py312/lib/python3.12/site-packages/timm/models/layers/patch_embed.py", line 35, in forward
+    x = self.proj(x)
+        ^^^^^^^^^^^^
+  File "/home/lee/miniconda3/envs/py312/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lee/miniconda3/envs/py312/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lee/Desktop/RepQ-ViT/classification/quant/quant_modules.py", line 70, in forward
+    x = self.input_quantizer(x)
+        ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lee/miniconda3/envs/py312/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lee/miniconda3/envs/py312/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lee/Desktop/RepQ-ViT/classification/quant/quantizer.py", line 50, in forward
+    self.delta, self.zero_point = self.init_quantization_scale(
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lee/Desktop/RepQ-ViT/classification/quant/quantizer.py", line 119, in init_quantization_scale
+    x_q = self.quantize(x_clone, new_max, new_min)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lee/Desktop/RepQ-ViT/classification/quant/quantizer.py", line 130, in quantize
+    zero_point = (-min / delta).round()
+                 ^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt
