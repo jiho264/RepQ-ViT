@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 모델 리스트
-models=("vit_small" "vit_base" "deit_tiny" "deit_small" "deit_base" "swin_tiny" "swin_small")
+models=("vit_small" "vit_base" "deit_tiny" "deit_small" "deit_base" "swin_tiny" "swin_small" "swin_base")
 
 # 실행할 스크립트
 
@@ -9,7 +9,7 @@ models=("vit_small" "vit_base" "deit_tiny" "deit_small" "deit_base" "swin_tiny" 
 for model in "${models[@]}"
 do
     # 로그 파일 이름 설정
-    log_file="${model}_org_16.txt"
+    log_file="org16/${model}_org16.txt"
     
     # 스크립트 실행 및 로그 파일에 출력 저장
     echo "Running experiment with model: $model"

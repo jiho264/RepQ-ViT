@@ -24,6 +24,7 @@ def get_args_parser():
             "deit_base",
             "swin_tiny",
             "swin_small",
+            "swin_base",
         ],
         help="model",
     )
@@ -75,6 +76,7 @@ def main():
         "deit_base": "deit_base_patch16_224",
         "swin_tiny": "swin_tiny_patch4_window7_224",
         "swin_small": "swin_small_patch4_window7_224",
+        "swin_base": "swin_base_patch4_window7_224",
     }
 
     device = torch.device(args.device)
